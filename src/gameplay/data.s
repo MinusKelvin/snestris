@@ -74,17 +74,47 @@ mul_10:
         .word .loword(-(y3)+10*x3)
 .endmacro
 
-.macro piece_spec p0
+.macro piece_spec p0, p1, p2, p3, p4, p5, p6
 piece_cell_x:
         cell_xs p0
+        cell_xs p1
+        cell_xs p2
+        cell_xs p3
+        cell_xs p4
+        cell_xs p5
+        cell_xs p6
 piece_cell_y:
         cell_ys p0
+        cell_ys p1
+        cell_ys p2
+        cell_ys p3
+        cell_ys p4
+        cell_ys p5
+        cell_ys p6
 piece_cell_dir:
         cell_dirs p0
+        cell_dirs p1
+        cell_dirs p2
+        cell_dirs p3
+        cell_dirs p4
+        cell_dirs p5
+        cell_dirs p6
 piece_cell_offset:
         cell_offsets p0
+        cell_offsets p1
+        cell_offsets p2
+        cell_offsets p3
+        cell_offsets p4
+        cell_offsets p5
+        cell_offsets p6
 .endmacro
 
 .linecont +
 piece_spec \
-        {$B, -1, 1,  $5, 0, 1,  $A, 0, 0,  $7, 1, 0}
+        {$B, -1, 1,        $5,  0, 1,        $A,  0, 0,        $7,  1, 0}, \
+        {$7,  1, 1,        $9,  0, 1,        $6,  0, 0,        $B, -1, 0}, \
+        {$D, -1, 1,        $A, -1, 0,        $3,  0, 0,        $7,  1, 0}, \
+        {$D,  1, 1,        $B, -1, 0,        $3,  0, 0,        $6,  1, 0}, \
+        {$9,  0, 1,        $5,  1, 1,        $6,  1, 0,        $A,  0, 0}, \
+        {$B, -1, 0,        $3,  0, 0,        $3,  1, 0,        $7,  2, 0}, \
+        {$D,  0, 1,        $B, -1, 0,        $2,  0, 0,        $7,  1, 0}
