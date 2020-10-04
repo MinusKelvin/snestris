@@ -1,7 +1,8 @@
 .include "snes.inc.s"
 .include "structs.inc.s"
 
-.export init_sprint, init_player_graphics_fields
+.export init_player_graphics_fields
+.export init_sprint, init_versus
 
 .bss
 
@@ -42,14 +43,34 @@ init_player_graphics_fields:
 
         rts
 
-; state that initializes the sprint gamemode
-; make sure you also set vblank_state to blank_screen when you switch to this state!
-init_sprint:
-        ; set state to sprint, vblank state to show game
-        ldx #sprint
-        stx main_state
+init_2p:
+        ; init player 2
+        phd
+        pea player2
+        pld                             ; set direct page to player 2's page
+        jsr init_player
+        pld
+
+        lda #%10011
+        sta TM                          ; enable obj, BG2, BG1 for main screen
+
+        jmp common_init
+
+init_1p:
+        lda #%10001
+        sta TM                          ; enable obj, BG1 for main screen
+        ; fallthrough
+
+common_init:
         ldx #show_screen
         stx vblank_state
+
+        ; init player 1
+        phd
+        pea player1
+        pld                             ; set direct page to player 1's page
+        jsr init_player
+        pld
 
         ; setup common graphics registers
         lda #$10<<2
@@ -57,26 +78,44 @@ init_sprint:
         lda #$11<<2
         sta BG2SC                       ; one tilemap at address $4400
         stz BG12NBA                     ; BGs 1&2 have character data at address $0000
-        lda #%10001
-        sta TM                          ; enable obj, BG1 for main screen
 
-        phd
-
-        ; init player 1
-        pea player1
-        pld                             ; set direct page to player1's page
-        jsr init_player
-        pld
-
-        ; done
         rts
+
+; state that initializes the sprint gamemode
+; make sure you also set vblank_state to blank_screen when you switch to this state!
+init_sprint:
+        ldx #sprint
+        stx main_state
+        jmp init_1p
+
+; state that initializes the sprint gamemode
+; make sure you also set vblank_state to blank_screen when you switch to this state!
+init_versus:
+        ldx #versus
+        stx main_state
+        jmp init_2p
 
 sprint:
         phd
 
         pea player1
-        pld                             ; set direct page to player1's page
+        pld                             ; set direct page to player 1's page
         jsr tick_player                 ; tick player 1
+
+        pld
+
+        rts
+
+versus:
+        phd
+
+        pea player1
+        pld                             ; set direct page to player 1's page
+        jsr tick_player
+
+        pea player2
+        pld                             ; set direct page to player 2's page
+        jsr tick_player
 
         pld
 

@@ -1,15 +1,15 @@
 .include "snes.inc.s"
 .include "structs.inc.s"
 
-.export init_frame, render, vram_update_ptr, oam_ptr
+.export init_frame, render, vram_update_idx, vram_update_buf, oam_idx, oam_buf
 .export bg1_scrollx, bg1_scrolly, bg2_scrollx, bg2_scrolly, bg3_scrollx, bg3_scrolly
 
 .bss
 
-vram_update_ptr:        .word 0
+vram_update_idx:        .word 0
 vram_update_buf:        .res $1000
 
-oam_ptr:                .word 0
+oam_idx:                .word 0
 oam_buf:                .res $200
 
 bg1_scrollx:            .byte 0
@@ -23,17 +23,17 @@ bg3_scrolly:            .byte 0
 
 init_frame:
         ; reset pointers
-        ldx #vram_update_buf
-        stx vram_update_ptr
-        ldx #oam_buf
-        stx oam_ptr
+        stz vram_update_idx
+        stz vram_update_idx+1
+        stz oam_idx
+        stz oam_idx+1
 
         ; clear all sprites
         lda #$F0
         ldx #$200
 :       dex
         sta oam_buf, X
-        bpl :-
+        bne :-
 
         rts
 
@@ -59,11 +59,25 @@ render:
         sta BBAD                        ; To VRAM data register
         stz A1TB                        ; Bank byte of transfer is always 0
 
+        ; Calculate pointer to end of buffer
+        ; It is preferable for this routine to have the pointer in X instead of an index in X and
+        ; using absolute,X addressing mode since we need to add a 16-bit number to X. This would
+        ; require a bunch of stuff with the accumulator; instead we'll let DMA incrementing the
+        ; source address register do the addition for us. Additionally, we get to use direct,X
+        ; addressing (assuming that the direct page is $0000 - which should always be true here).
+        rep #$21                        ; 16-bit accumulator, clear the carry
+        .a16
+        lda #vram_update_buf
+        adc vram_update_idx
+        sta $00
+        sep #$20
+        .a8
+
         ; Init for loop
         ldx #vram_update_buf
 
 @vram_dma_loop:
-        cpx vram_update_ptr
+        cpx $00
         beq @vram_dma_done
 
         ; DMA arguments

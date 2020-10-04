@@ -47,11 +47,11 @@ reset:
         ; Reset PPU to known state
         lda #$80
         sta INIDISP             ; force-blank & turn off screen
-        stz OBJSEL
         lda #$01
         sta BGMODE              ; Mode 1, 8x8 tiles
         stz MOSAIC              ; Disable mosaic filter
         stz BG12NBA             ; Background 1&2 character address $0000
+        stz OBJSEL              ; 8x8 and 16x16 sprites, character address $0000
         lda #$80
         sta VMAIN               ; Increment by 1 on word write to VMDATA, no address remapping
         stz W12SEL              ; Disable window masks for backgrounds+obj
@@ -99,7 +99,7 @@ reset:
         jsr init_player_graphics_fields
 
         ; set initial state
-        ldx #init_sprint
+        ldx #init_versus
         stx main_state
         ldx #blank_screen
         stx vblank_state

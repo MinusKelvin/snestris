@@ -9,6 +9,10 @@
         scroll_x_offset .byte
         ; stuff init_player initializes
         state           .addr
+        timer           .byte
+        piece_state     .byte
+        px              .byte
+        py              .byte
 .endstruct
 
 .struct VramUpdate
