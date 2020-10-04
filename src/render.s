@@ -1,5 +1,5 @@
 .include "snes.inc.s"
-.include "structs.inc.s"
+.include "render.inc.s"
 
 .export init_frame, render, vram_update_idx, vram_update_buf, oam_idx, oam_buf
 .export bg1_scrollx, bg1_scrolly, bg2_scrollx, bg2_scrolly, bg3_scrollx, bg3_scrolly

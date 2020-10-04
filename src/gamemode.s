@@ -1,5 +1,5 @@
 .include "snes.inc.s"
-.include "structs.inc.s"
+.include "gameplay/gameplay.inc.s"
 
 .export init_player_graphics_fields
 .export init_sprint, init_versus
