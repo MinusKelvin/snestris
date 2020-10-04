@@ -3,6 +3,8 @@
 
 .export tick_player, init_player
 
+collision_index_cache = $40
+
 .code
 
 .macro push_vram_tiles v1, v2, v3, v4, v5, v6, v7, v8, v9, v10
@@ -30,11 +32,13 @@
 ; palette number = cell >> 5
 ; tileset number = cell & $1F
 
+
 ; The caller must set the direct page register to the player's page.
 tick_player:
         tdc
         tax
         jmp (Player::state, X)
+
 
 ; The caller must set the direct page register to the player's page.
 init_player:
@@ -73,6 +77,7 @@ init_player:
         jsr to_countdown
 
         rts
+
 
 to_countdown:
         ; init fields
@@ -120,6 +125,7 @@ to_countdown:
         .a8
 
         rts
+
 
 countdown_state:
         dec Player::timer
@@ -260,6 +266,7 @@ countdown_state:
 
         jmp to_spawn_delay
 
+
 ; Switch to spawn delay state (TODO)
 to_spawn_delay:
         ldx #spawn_delay
@@ -267,6 +274,7 @@ to_spawn_delay:
         lda #4
         sta Player::timer
         rts
+
 
 spawn_delay:
         dec Player::timer
@@ -286,7 +294,28 @@ spawn_delay:
 
         rts
 
+
 falling:
+        lda #$01
+        bit JOY1H
+        beq @skip_move_right
+        ; right pressed
+        inc Player::px
+        jsr check_location_valid
+        bcs @skip_move_right
+        dec Player::px
+@skip_move_right:
+
+        lda #$02
+        bit JOY1H
+        beq @skip_move_left
+        ; left pressed
+        dec Player::px
+        jsr check_location_valid
+        bcs @skip_move_left
+        inc Player::px
+@skip_move_left:
+
         lda #0
         xba                             ; clear the upper half of the 16-bit accumulator
         lda Player::piece_state
@@ -340,27 +369,176 @@ falling:
 
         rts
 
+
 nothing_state:
+        rts
+
+
+; Sets the carry if the piece is in a valid location, clears it if it's not
+check_location_valid:
+        lda #0
+        xba                             ; clear upper half of C
+        lda Player::piece_state
+        asl
+        asl
+        tax                             ; X = piece cell index
+        ldy #4                          ; Y = loop counter
+
+@check_cell_loop:
+        ; check x coordinate
+        lda Player::px
+        clc
+        adc piece_cell_x, X             ; calculate cell x coord
+        bmi @invalid                    ; cell is off the left side of the playfield
+        cmp #10
+        bpl @invalid                    ; cell is off the right side of the playfield
+
+        ; check y coordinate
+        lda Player::py
+        clc
+        adc piece_cell_y, X             ; calculate cell y coord
+        bmi @invalid                    ; cell is off the bottom of the playfield
+        cmp #40
+        bpl @invalid                    ; cell is off the top of the playfield
+
+        inx
+        dey
+        bne @check_cell_loop
+
+        ; all cells valid
+        sec
+        rts
+
+@invalid:
+        clc
+        rts
+
+cache_collision_indices:
+        lda Player::px
+        sta $00
+        stz $01                         ; w$00 = zero-extended px
+
+        lda #0
+        xba                             ; clear upper half of C
+        lda Player::py
+        asl
+        tax                             ; X is now an index into the multiplication table
+        rep #$21                        ; 16-bit accumulator, clear carry
+        .a16
+        lda mul_10, X                   ; py * 10
+
+        adc $00
+        sta $00                         ; w$00 = px + py*10
+
+        lda Player::piece_state
+        and #$FF                        ; need an 8-bit load, don't want to switch sizes again
+        asl
+        asl
+        asl                             ; 4 cells * 2 bytes per word
+        tax                             ; X = index into piece i table
+        ldy #8                          ; Y = loop variable, but also index into cell index cache
+
+@collision_index_loop:
+        dey
+        dey
+
+        lda piece_cell_offset, X
+        clc
+        adc $00
+        sta collision_index_cache, Y    ; store cached cell index
+
+        inx
+        inx
+        bne @collision_index_loop
+
+        ; done; go back to 8-bit accumulator
+        sep #$20
+        .a8
         rts
 
 .rodata
 
+mul_10:
+.repeat 40, i
+        .word i*10
+.endrepeat
+
+.macro cell_xs d0, x0, y0,  d1, x1, y1,  d2, x2, y2,  d3, x3, y3
+        .lobytes x0,  x1,  x2,  x3              ; normal
+        .lobytes y0,  y1,  y2,  y3              ; cw
+        .lobytes -(x0), -(x1), -(x2), -(x3)     ; 180
+        .lobytes -(y0), -(y1), -(y2), -(y3)     ; ccw
+.endmacro
+
+.macro cell_ys d0, x0, y0,  d1, x1, y1,  d2, x2, y2,  d3, x3, y3
+        .lobytes y0,  y1,  y2,  y3              ; normal
+        .lobytes -(x0), -(x1), -(x2), -(x3)     ; cw
+        .lobytes -(y0), -(y1), -(y2), -(y3)     ; 180
+        .lobytes x0,  x1,  x2,  x3              ; ccw
+.endmacro
+
+.macro d_cw d0, d1, d2, d3
+        .byte d0 & %0011 << 2 | d0 & %1000 >> 3 | d0 & %0100 >> 1
+        .byte d1 & %0011 << 2 | d1 & %1000 >> 3 | d1 & %0100 >> 1
+        .byte d2 & %0011 << 2 | d2 & %1000 >> 3 | d2 & %0100 >> 1
+        .byte d3 & %0011 << 2 | d3 & %1000 >> 3 | d3 & %0100 >> 1
+.endmacro
+
+.macro d_180 d0, d1, d2, d3
+        .byte d0 & %0101 << 2 | d0 & %1010 >> 2
+        .byte d1 & %0101 << 2 | d1 & %1010 >> 2
+        .byte d2 & %0101 << 2 | d2 & %1010 >> 2
+        .byte d3 & %0101 << 2 | d3 & %1010 >> 2
+.endmacro
+
+.macro d_ccw d0, d1, d2, d3
+        .byte d0 & %0001 << 3 | d0 & %0010 << 1 | d0 & %1100 >> 2
+        .byte d1 & %0001 << 3 | d1 & %0010 << 1 | d1 & %1100 >> 2
+        .byte d2 & %0001 << 3 | d2 & %0010 << 1 | d2 & %1100 >> 2
+        .byte d3 & %0001 << 3 | d3 & %0010 << 1 | d3 & %1100 >> 2
+.endmacro
+
+.macro cell_dirs d0, x0, y0,  d1, x1, y1,  d2, x2, y2,  d3, x3, y3
+        .byte d0, d1, d2, d3
+        d_cw  d0, d1, d2, d3
+        d_180 d0, d1, d2, d3
+        d_ccw d0, d1, d2, d3
+.endmacro
+
+.macro cell_offsets d0, x0, y0,  d1, x1, y1,  d2, x2, y2,  d3, x3, y3
+        ; normal
+        .word .loword(x0+10*y0)
+        .word .loword(x1+10*y1)
+        .word .loword(x2+10*y2)
+        .word .loword(x3+10*y3)
+        ; cw
+        .word .loword(y0+10*-(x0))
+        .word .loword(y1+10*-(x1))
+        .word .loword(y2+10*-(x2))
+        .word .loword(y3+10*-(x3))
+        ; 180
+        .word .loword(-(x0)+10*-(y0))
+        .word .loword(-(x1)+10*-(y1))
+        .word .loword(-(x2)+10*-(y2))
+        .word .loword(-(x3)+10*-(y3))
+        ; ccw
+        .word .loword(-(y0)+10*x0)
+        .word .loword(-(y1)+10*x1)
+        .word .loword(-(y2)+10*x2)
+        .word .loword(-(y3)+10*x3)
+.endmacro
+
+.macro piece_spec p0
 piece_cell_x:
-        ; Z
-        .byte   $FF, $00, $00, $01      ; Spawn
-        .byte   $01, $01, $00, $00      ; Cw
-        .byte   $01, $00, $00, $FF      ; 180
-        .byte   $FF, $FF, $00, $00      ; Ccw
-
+        cell_xs p0
 piece_cell_y:
-        ; Z
-        .byte   $01, $01, $00, $00      ; Spawn
-        .byte   $01, $00, $00, $FF      ; Cw
-        .byte   $FF, $FF, $00, $00      ; 180
-        .byte   $FF, $00, $00, $01      ; Ccw
-
+        cell_ys p0
 piece_cell_dir:
-        .byte   $B, $5, $A, $7          ; Spawn
-        .byte   $D, $6, $9, $E          ; Cw
-        .byte   $7, $A, $5, $B          ; 180
-        .byte   $E, $9, $6, $D          ; Ccw
+        cell_dirs p0
+piece_cell_offset:
+        cell_offsets p0
+.endmacro
+
+.linecont +
+piece_spec \
+        {$B, -1, 1,  $5, 0, 1,  $A, 0, 0,  $7, 1, 0}
