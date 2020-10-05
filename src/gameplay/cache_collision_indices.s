@@ -5,6 +5,7 @@
 
 .code
 
+; mangles C, X, Y, $00, $01
 cache_collision_indices:
         lda Player::px
         sta $00

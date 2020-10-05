@@ -5,7 +5,8 @@
 
 .code
 
-; Sets the carry if the piece is in a valid location, clears it if it's not
+; Sets the carry if the piece would be in a valid location if moved to $00, $01
+; mangles C, X, Y
 check_location_valid:
         lda #0
         xba                             ; clear upper half of C
@@ -17,7 +18,7 @@ check_location_valid:
 
 @check_cell_loop:
         ; check x coordinate
-        lda Player::px
+        lda $00
         clc
         adc piece_cell_x, X             ; calculate cell x coord
         bmi @invalid                    ; cell is off the left side of the playfield
@@ -25,7 +26,7 @@ check_location_valid:
         bpl @invalid                    ; cell is off the right side of the playfield
 
         ; check y coordinate
-        lda Player::py
+        lda $01
         clc
         adc piece_cell_y, X             ; calculate cell y coord
         bmi @invalid                    ; cell is off the bottom of the playfield

@@ -45,6 +45,11 @@ tick_player:
         ; used_input will be 1 if the button had unpressed->pressed transition,
         ;                    0 if the button is unpressed,
         ;                    unchanged if the button remained held
+
+        ; but first, hdrop is special since it should be cleared if the button is held
+        lda #Input::hdrop
+        trb Player::used_inputs
+
         lda Player::prev_inputs
         eor #$FF
         ora Player::used_inputs

@@ -21,19 +21,6 @@ collision_index_cache = $40
         das_right       .byte
 .endstruct
 
-.macro push_vram_tiles v1, v2, v3, v4, v5, v6, v7, v8, v9, v10
-.ifblank v1
-        stx vram_update_idx
-        .exitmacro
-.else
-        lda #v1
-        sta vram_update_buf, X
-        inx
-        inx
-        push_vram_tiles v2, v3, v4, v5, v6, v7, v8, v9, v10
-.endif
-.endmacro
-
 ; Board format is 1 byte per cell, 10 cells per row, 40 rows.
 ; Cell byte is 0cccdddd
 ; c = color: 0 = garbage, 1-8 = piece
