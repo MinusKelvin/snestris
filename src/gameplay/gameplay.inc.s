@@ -14,6 +14,11 @@ collision_index_cache = $40
         piece_state     .byte
         px              .byte
         py              .byte
+        curr_inputs     .byte
+        prev_inputs     .byte
+        used_inputs     .byte
+        das_left        .byte
+        das_right       .byte
 .endstruct
 
 .macro push_vram_tiles v1, v2, v3, v4, v5, v6, v7, v8, v9, v10
@@ -40,3 +45,13 @@ collision_index_cache = $40
 ;       all bits 0 means empty tile. color must be 0 in this case
 ; palette number = cell >> 5
 ; tileset number = cell & $1F
+
+.enum Input
+        right = %00000001
+        left  = %00000010
+        sdrop = %00000100
+        hdrop = %00001000
+        hold  = %00010000
+        cw    = %00100000
+        ccw   = %01000000
+.endenum

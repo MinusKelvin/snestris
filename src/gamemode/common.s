@@ -81,7 +81,34 @@ common_init:
 
         rts
 
+.macro joy_to_input joyreg
+        lda joyreg+1
+        and #$0F
+        sta $00                         ; L => left, R => right, U => hdrop, D => sdrop
+        lda joyreg+1
+        lsr
+        ora joyreg+1
+        and #$40
+        ora $00
+        sta $00                         ; B | Y => ccw
+        lda joyreg
+        lsr
+        ora joyreg
+        sta $01                         ; bit 6 is A | X, bit 4 is LB | RB
+        and #$40
+        lsr
+        ora $00
+        sta $00                         ; A | X => cw
+        lda $01
+        and #$10
+        ora $00                         ; LB | RB => hold
+.endmacro
+
 tick_2p:
+        ; read inputs
+        joy_to_input JOY2L
+        sta player2 + Player::curr_inputs
+
         phd
         pea player2
         pld
@@ -90,6 +117,10 @@ tick_2p:
         ; fallthrough
 
 tick_1p:
+        ; read inputs
+        joy_to_input JOY1L
+        sta player1 + Player::curr_inputs
+
         phd
         pea player1
         pld

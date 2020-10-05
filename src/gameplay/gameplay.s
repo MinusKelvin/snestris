@@ -5,8 +5,58 @@
 
 .code
 
+.macro das input, timer
+.scope
+        ; check left DAS
+        lda #input
+        bit Player::curr_inputs
+        beq reset
+
+        ; button is down
+        bit Player::used_inputs
+        beq decr
+
+        ; movement input unused. if timer >= 3, decrement
+        lda timer
+        cmp #3
+        bmi skip
+
+decr:
+        dec timer
+        bne skip
+
+        ; das timer == 0: trigger das input
+        lda Player::used_inputs
+        ora #input
+        sta Player::used_inputs
+        lda #2
+        sta timer
+        bra skip
+reset:
+        lda #10
+        sta timer
+skip:
+.endscope
+.endmacro
+
 ; The caller must set the direct page register to the player's page.
 tick_player:
+        ; Handle button presses & releases
+        ; used_input will be 1 if the button had unpressed->pressed transition,
+        ;                    0 if the button is unpressed,
+        ;                    unchanged if the button remained held
+        lda Player::prev_inputs
+        eor #$FF
+        ora Player::used_inputs
+        and Player::curr_inputs
+        sta Player::used_inputs
+
+        lda Player::curr_inputs
+        sta Player::prev_inputs
+
+        das Input::left, Player::das_left
+        das Input::right, Player::das_right
+
         tdc
         tax
         jmp (Player::state, X)
@@ -14,6 +64,11 @@ tick_player:
 ; The caller must set the direct page register to the player's page.
 init_player:
         ; initialize fields
+        stz Player::curr_inputs
+        stz Player::used_inputs
+        stz Player::prev_inputs
+        stz Player::das_left
+        stz Player::das_right
 
         ; clear board
         lda #0

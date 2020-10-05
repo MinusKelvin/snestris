@@ -9,7 +9,7 @@ out/res.o: src/res.s $(RESOURCES)
 	@mkdir -p $(@D)
 	ca65 -g -o $@ $<
 
-out/%.o: src/%.s src/*.inc.s
+out/%.o: src/%.s src/**/*.inc.s
 	@mkdir -p $(@D)
 	ca65 -g -o $@ $<
 

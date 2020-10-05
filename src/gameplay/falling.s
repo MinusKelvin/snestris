@@ -7,23 +7,39 @@
 .code
 
 falling:
-        lda #$01
-        bit JOY1H
+        ; move right check
+        lda #Input::right
+        bit Player::used_inputs
         beq @skip_move_right
+
         ; right pressed
         inc Player::px
         jsr check_location_valid
-        bcs @skip_move_right
+        bcc @move_right_failed
+
+        lda #Input::right
+        trb Player::used_inputs
+        bra @skip_move_right
+
+@move_right_failed:
         dec Player::px
 @skip_move_right:
 
-        lda #$02
-        bit JOY1H
+        ; move left check
+        lda #Input::left
+        bit Player::used_inputs
         beq @skip_move_left
+
         ; left pressed
         dec Player::px
         jsr check_location_valid
-        bcs @skip_move_left
+        bcc @move_left_failed
+
+        lda #Input::left
+        trb Player::used_inputs
+        bra @skip_move_left
+
+@move_left_failed:
         inc Player::px
 @skip_move_left:
 
