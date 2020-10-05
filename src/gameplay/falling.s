@@ -39,18 +39,33 @@ falling:
         trb Player::used_inputs
 @skip_move_left:
 
-        ; hard drop check
-        lda #Input::hdrop
-        bit Player::used_inputs
-        beq @skip_hdrop
+        ; save original y position
+        lda Player::py
+        sta Player::ghost_y
 
-        ; hard drop pressed
+        ; move down until ground is reached
         stz $02
         lda #<-1
         sta $03
 :       jsr try_move
         bcs :-
 
+        ; save ghost y and restore original y position
+        lda Player::ghost_y
+        xba
+        lda Player::py
+        sta Player::ghost_y
+        xba
+        sta Player::py
+
+        ; hard drop check
+        lda #Input::hdrop
+        bit Player::used_inputs
+        beq @skip_hdrop
+
+        ; hard drop pressed. teleport to ghost and lock
+        lda Player::ghost_y
+        sta Player::py
         jmp lock
 
 @skip_hdrop:

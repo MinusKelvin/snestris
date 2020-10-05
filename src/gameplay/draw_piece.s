@@ -31,6 +31,7 @@ draw_piece:
         adc #$20
         adc Player::scroll_x_offset
         sta oam_buf + Sprite::xcoord, X
+        sta oam_buf + Sprite::xcoord + .sizeof(Sprite), X       ; ghost x is the same
 
         ; calculate tile Y position
         ; this should be adjustment - (celly + piecey)*8
@@ -45,10 +46,27 @@ draw_piece:
         adc #$C8
         sta oam_buf + Sprite::ycoord, X
 
+        ; ghost y is above + (piecey - ghosty)*8
+        sta $01
+        lda Player::py
+        sec
+        sbc Player::ghost_y
+        asl
+        asl
+        asl
+        adc $01
+        sta oam_buf + Sprite::ycoord + .sizeof(Sprite), X       ; ghost y
+
         lda piece_cell_dir, Y
         sta oam_buf + Sprite::chr, X    ; sprite graphic connected texture
-        stz oam_buf + Sprite::flags, X  ; palette 0, nothing special
+        adc #$20
+        sta oam_buf + Sprite::chr + .sizeof(Sprite), X          ; ghost graphic connected texture
+        lda Player::sprite_palette
+        sta oam_buf + Sprite::flags + .sizeof(Sprite), X        ; ghost sprite doesn't have priority
+        ora #$20                        ; priority
+        sta oam_buf + Sprite::flags, X
         .repeat .sizeof(Sprite)
+                inx
                 inx
         .endrepeat
 

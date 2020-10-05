@@ -1,13 +1,13 @@
 .include "snes.inc.s"
 .include "render.inc.s"
 
-.export init_frame, render, vram_update_idx, vram_update_buf, oam_idx, oam_buf
+.export init_frame, render, vram_update_idx, vram_update_buf, oam_idx, oam_buf, palette
 .export bg1_scrollx, bg1_scrolly, bg2_scrollx, bg2_scrolly, bg3_scrollx, bg3_scrolly
 
 .bss
 
 vram_update_idx:        .word 0
-vram_update_buf:        .res $1000
+vram_update_buf:        .res $800
 
 oam_idx:                .word 0
 oam_buf:                .res $200
@@ -18,6 +18,8 @@ bg2_scrollx:            .byte 0
 bg2_scrolly:            .byte 0
 bg3_scrollx:            .byte 0
 bg3_scrolly:            .byte 0
+
+palette:                .res $200
 
 .code
 
@@ -47,6 +49,18 @@ render:
         ldx #oam_buf
         stx A1TL
         stz A1TB                        ; from oam_buf
+        ldx #$200
+        stx DASL                        ; 512 bytes
+        lda #1
+        sta MDMAEN                      ; initiate DMA
+
+        ; DMA palette to VRAM
+        ; reuse DMAP, A1TB from previous DMA operation
+        stz CGADD
+        lda #<CGDATA
+        sta BBAD                        ; to color graphics data register
+        ldx #palette
+        stx A1TL                        ; from palette
         ldx #$200
         stx DASL                        ; 512 bytes
         lda #1

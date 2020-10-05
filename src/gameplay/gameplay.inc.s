@@ -2,18 +2,20 @@ collision_index_cache = $40
 
 .struct Player
         temps           .res $80
-        ; stuff the gamemode has to initialize
+        ; stuff that distinguishes player 1 and player 2
         board           .addr
         vram            .addr
         scroll_x_ptr    .addr
         scroll_y_ptr    .addr
         scroll_x_offset .byte
+        sprite_palette  .byte
         ; stuff init_player initializes
         state           .addr
         timer           .byte
         piece_state     .byte
         px              .byte
         py              .byte
+        ghost_y         .byte
         curr_inputs     .byte
         prev_inputs     .byte
         used_inputs     .byte

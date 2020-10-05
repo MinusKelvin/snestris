@@ -41,6 +41,10 @@ init_player_graphics_fields:
         lda #$70
         sta player2 + Player::scroll_x_offset
 
+        stz player1 + Player::sprite_palette
+        lda #$02
+        sta player2 + Player::sprite_palette
+
         rts
 
 init_2p:

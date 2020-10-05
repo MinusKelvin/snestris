@@ -28,7 +28,7 @@ to_countdown:
         adc #.sizeof(VramUpdate)
         tax
         ; push tiles
-        push_vram_tiles $0023, $0025, $8023
+        push_vram_tiles $0033, $0035, $8033
         sep #$20
         .a8
 
@@ -47,7 +47,7 @@ to_countdown:
         adc #.sizeof(VramUpdate)
         tax
         ; push tiles
-        push_vram_tiles $0024, $0026, $8024
+        push_vram_tiles $0034, $0036, $8034
         sep #$20
         .a8
 
@@ -85,7 +85,7 @@ countdown_state:
         adc #.sizeof(VramUpdate)
         tax
         ; push tiles
-        push_vram_tiles $0023, $0029, $002B
+        push_vram_tiles $0033, $0039, $003B
         sep #$20
         .a8
 
@@ -104,7 +104,7 @@ countdown_state:
         adc #.sizeof(VramUpdate)
         tax
         ; push tiles
-        push_vram_tiles $0024, $002A, $8022
+        push_vram_tiles $0034, $003A, $8032
         sep #$20
         .a8
 
@@ -126,7 +126,7 @@ countdown_state:
         adc #.sizeof(VramUpdate)
         tax
         ; push tiles
-        push_vram_tiles $0027, $4028, $002C
+        push_vram_tiles $0037, $4038, $003C
         sep #$20
         .a8
 
@@ -145,7 +145,7 @@ countdown_state:
         adc #.sizeof(VramUpdate)
         tax
         ; push tiles
-        push_vram_tiles $0028, $0028, $402C
+        push_vram_tiles $0038, $0038, $403C
         sep #$20
         .a8
 

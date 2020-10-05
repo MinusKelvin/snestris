@@ -64,19 +64,13 @@ reset:
         stz CGADSUB             ; Disable color math
         stz SETINI              ; No special video stuff
 
-        ; Load color palette using DMA
-        stz CGADD
-        stz DMAP                ; to PPU (1 register write once)
-        lda #<CGDATA
-        sta BBAD                ; to CGDATA register
-        ldx #.loword(palette)
-        stx A1TL
-        lda #^palette
-        sta A1TB                ; from palette
-        ldx #$200
-        stx DASL                ; 512 bytes
-        lda #1
-        sta MDMAEN              ; initiate DMA transfer
+        ; Copy palette from ROM to RAM
+        lda #$01
+        xba
+        lda #$FF
+        ldx #.loword(rom_palette)
+        ldy #palette
+        mvn #^rom_palette, #0
 
         ; Load 4bpp tileset using DMA
         stz VMADDL
