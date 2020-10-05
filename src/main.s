@@ -99,10 +99,7 @@ reset:
         jsr init_player_graphics_fields
 
         ; set initial state
-        ldx #init_versus
-        stx main_state
-        ldx #blank_screen
-        stx vblank_state
+        jsr to_versus
 
         ; Enable NMI and auto joypad read
         lda #$81

@@ -1,8 +1,8 @@
-.include "snes.inc.s"
-.include "gameplay/gameplay.inc.s"
+.include "../snes.inc.s"
+.include "../gameplay/gameplay.inc.s"
 
-.export init_player_graphics_fields
-.export init_sprint, init_versus
+.export init_player_graphics_fields, init_1p, init_2p, tick_1p, tick_2p
+.export player1, player2
 
 .bss
 
@@ -81,42 +81,19 @@ common_init:
 
         rts
 
-; state that initializes the sprint gamemode
-; make sure you also set vblank_state to blank_screen when you switch to this state!
-init_sprint:
-        ldx #sprint
-        stx main_state
-        jmp init_1p
-
-; state that initializes the sprint gamemode
-; make sure you also set vblank_state to blank_screen when you switch to this state!
-init_versus:
-        ldx #versus
-        stx main_state
-        jmp init_2p
-
-sprint:
+tick_2p:
         phd
-
-        pea player1
-        pld                             ; set direct page to player 1's page
-        jsr tick_player                 ; tick player 1
-
-        pld
-
-        rts
-
-versus:
-        phd
-
-        pea player1
-        pld                             ; set direct page to player 1's page
-        jsr tick_player
-
         pea player2
-        pld                             ; set direct page to player 2's page
+        pld
         jsr tick_player
+        pld
+        ; fallthrough
 
+tick_1p:
+        phd
+        pea player1
+        pld
+        jsr tick_player
         pld
 
         rts
