@@ -117,6 +117,21 @@ render:
         jmp @vram_dma_loop
 @vram_dma_done:
 
+        lda SLHV
+        lda STAT78
+        lda OPVCT
+        xba
+        lda OPVCT
+        rep #$20
+        .a16
+        and #$1FF
+        cmp #224
+        bpl :+
+        ; overspent vblank time. Debugger will let us break on wdm instruction
+        wdm 0
+:       sep #$20
+        .a8
+
         ; transfer scroll registers, with a loop because im lazy
         ldx #5
 :       lda bg1_scrollx, X

@@ -1,13 +1,8 @@
 .include "../snes.inc.s"
 
-.export mul_10, piece_cell_x, piece_cell_y, piece_cell_dir, piece_cell_offset
+.export piece_cell_x, piece_cell_y, piece_cell_dir, piece_cell_offset
 
 .rodata
-
-mul_10:
-.repeat 40, i
-        .word i*10
-.endrepeat
 
 .macro cell_xs d0, x0, y0,  d1, x1, y1,  d2, x2, y2,  d3, x3, y3
         .lobytes x0,  x1,  x2,  x3              ; normal

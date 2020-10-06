@@ -51,7 +51,11 @@ CGWSEL = $2130
 CGADSUB = $2131
 COLDATA = $2132
 SETINI = $2133
-; Read registers omitted
+; Some read registers omitted
+SLHV = $2137
+OPHCT = $213C
+OPVCT = $213D
+STAT78 = $213F
 ; APU registers omitted
 WMDATA = $2180
 WMADDL = $2181
@@ -60,6 +64,7 @@ WMADDH = $2183
 
 ; Internal CPU registers
 NMITIMEN = $4200
+WRIO = $4201
 ; ...
 MDMAEN = $420B
 HDMAEN = $420C

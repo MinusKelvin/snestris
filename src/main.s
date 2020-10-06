@@ -64,6 +64,10 @@ reset:
         stz CGADSUB             ; Disable color math
         stz SETINI              ; No special video stuff
 
+        ; Allow latching of OPHCT/OPVCT registers
+        lda #$80
+        sta WRIO
+
         ; Copy palette from ROM to RAM
         lda #$01
         xba

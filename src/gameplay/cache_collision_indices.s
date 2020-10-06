@@ -14,11 +14,13 @@ cache_collision_indices:
         lda #0
         xba                             ; clear upper half of C
         lda Player::py
-        asl
-        tax                             ; X is now an index into the multiplication table
         rep #$21                        ; 16-bit accumulator, clear carry
         .a16
-        lda mul_10, X                   ; py * 10
+        asl
+        sta $02                         ; py*2
+        asl
+        asl
+        adc $02                         ; py*10 = py*2 + py*8
 
         adc $00
         sta $00                         ; w$00 = px + py*10
@@ -28,13 +30,10 @@ cache_collision_indices:
         asl
         asl
         asl                             ; 4 cells * 2 bytes per word
-        tax                             ; X = index into piece i table
-        ldy #8                          ; Y = loop variable, but also index into cell index cache
+        tax                             ; X = index into piece tables
+        ldy #6                          ; Y = loop variable, but also index into cell index cache
 
 @collision_index_loop:
-        dey
-        dey
-
         lda piece_cell_offset, X
         clc
         adc $00
@@ -42,7 +41,9 @@ cache_collision_indices:
 
         inx
         inx
-        bne @collision_index_loop
+        dey
+        dey
+        bpl @collision_index_loop
 
         ; done; go back to 8-bit accumulator
         sep #$20
