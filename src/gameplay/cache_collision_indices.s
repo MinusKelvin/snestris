@@ -5,7 +5,7 @@
 
 .code
 
-; mangles C, X, Y, $00, $01
+; mangles C, X, Y, $00, $01, $02, $03
 cache_collision_indices:
         lda Player::px
         sta $00
@@ -30,19 +30,19 @@ cache_collision_indices:
         asl
         asl
         asl                             ; 4 cells * 2 bytes per word
-        tax                             ; X = index into piece tables
-        ldy #6                          ; Y = loop variable, but also index into cell index cache
+        tay                             ; Y = index into piece tables
+        ldx #6                          ; X = loop variable, but also index into cell index cache
 
 @collision_index_loop:
-        lda piece_cell_offset, X
+        lda piece_cell_offset, Y
         clc
         adc $00
-        sta collision_index_cache, Y    ; store cached cell index
+        sta collision_index_cache, X    ; store cached cell index
 
-        inx
-        inx
-        dey
-        dey
+        iny
+        iny
+        dex
+        dex
         bpl @collision_index_loop
 
         ; done; go back to 8-bit accumulator

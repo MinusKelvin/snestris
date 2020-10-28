@@ -6,6 +6,8 @@
 .code
 
 falling:
+        jsr cache_collision_indices
+
         ; move right check
         lda #Input::right
         bit Player::used_inputs
